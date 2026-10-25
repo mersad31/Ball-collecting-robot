@@ -1,93 +1,77 @@
-# Ball-collecting-robot
-Designing and building a ball collecting robot using image processing with python
-Certainly! Here's a README file for a ball collecting robot project:
+# 🤖 Ball-Collecting Robot
 
-The Ball Collecting Robot is a project that involves building a robot capable of autonomously navigating an environment 
-and collecting balls using computer vision and robotics techniques.
+A Raspberry Pi robot that finds a yellow ball with computer vision and drives toward it.
 
-## Table of Contents
+---
 
-- [Introduction](#introduction)
-- [Features](#features)
-- [Hardware Requirements](#hardware-requirements)
-- [Software Dependencies](#software-dependencies)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
+## 🎯 The Problem
 
-## Introduction
+How do you make a very low-cost robot (Raspberry Pi Zero, one camera, two DC motors) find and reach a ball on its own, without any special sensors?
 
-The Ball Collecting Robot is designed to autonomously detect, locate, and collect balls in its surroundings using computer vision and robotic manipulation. The robot utilizes a combination of hardware components, such as a camera, microcontroller, motors, and gripper mechanism, along with software algorithms for ball detection, localization, and control.
+## 💡 The Approach
 
-This project serves as an educational resource for learning about computer vision, robotics, and autonomous systems.
+The robot runs a simple **see → decide → move** loop on every camera frame:
 
-## Features
+1. **Vision** (`robot_vision.py`): convert the frame to HSV, keep the yellow range, clean the mask (erode/dilate), find contours, filter by area and radius, and pick the largest candidate.
+2. **Control** (`robot_control.py`): turn the ball's position and size into motor commands.
+3. **Drive** (`robot.py`): send the commands to the motors with PWM on the Raspberry Pi GPIO pins.
 
-- Ball detection: The robot can detect balls in its field of view using computer vision techniques.
-- Localization: The robot can estimate the position and distance of the detected balls.
-- Navigation: The robot can navigate its environment autonomously while avoiding obstacles.
-- Ball collection: The robot is equipped with a gripper mechanism to collect the detected balls.
+| Situation | Behavior |
+|---|---|
+| No ball visible | Spin in place to search |
+| Ball off-center | Turn toward it, proportionally to the error |
+| Ball centered and far | Drive forward |
+| Ball centered and close | Stop |
 
-## Hardware Requirements
+The vision and control logic has **no hardware dependencies**, so it is unit-tested on any computer.
 
-To build the Ball Collecting Robot, you will need the following hardware components:
+<!-- TODO: add a photo or GIF of the robot, e.g. ![Robot](docs/robot.gif) -->
 
-- Raspberry Pi Zero
-- Camera module compatible with the microcontroller
-- Motor controller with L293D IC
-- Gripper mechanism for ball collection
-- Ultra sonic distance meter sensor
-- Robot chassis and wheels
-- Jumper wires and breadboard
-- power
+## 🧰 Hardware
 
-## Software Dependencies
+| Part | Purpose |
+|---|---|
+| Raspberry Pi Zero | Main computer |
+| Pi camera module | Vision (640×480, 15 fps) |
+| L293D motor driver | Drives two DC motors |
+| Robot chassis, wheels, power | Body |
 
-The Ball Collecting Robot project relies on the following software dependencies:
+GPIO pins (BOARD numbering): right forward `7`, right reverse `11`, left forward `13`, left reverse `15`.
 
-- Python 3.x
-- OpenCV
-- RPi.GPIO (for Raspberry Pi)
-- Additional libraries for motor control, image processing, and navigation (based on your chosen framework)
+## 🚀 Getting Started
 
-Make sure to install these dependencies before running the project.
+On the Raspberry Pi:
 
-## Installation
+```bash
+git clone https://github.com/mersad31/Ball-collecting-robot.git
+cd Ball-collecting-robot
+pip install opencv-python numpy
+python robot.py
+```
 
-Follow these steps to install and set up the Ball Collecting Robot project:
+`picamera` and `RPi.GPIO` are also required on the Pi. Press `q` to stop.
 
-1. Connect the hardware components according to the provided pin definitions and GPIO setup in the code.
+## 🧪 Tests
 
-2. Install the necessary software dependencies:
-   - Python 3: Install Python 3 from the official Python website (https://www.python.org).
-   - OpenCV: Install OpenCV using the package manager or the official OpenCV website (https://opencv.org).
-   - RPi.GPIO (for Raspberry Pi): Install the RPi.GPIO library using the package manager or the official documentation.
+```bash
+pip install pytest numpy
+pytest tests
+```
 
-3. Clone the repository to your microcontroller or development environment:
-   ```bash
-   git clone https://github.com/your-username/ball-collecting-robot.git
-   ```
+## 📂 Repository Layout
 
-## Usage
+| File | Purpose |
+|---|---|
+| `robot.py` | Main loop, camera and motor (GPIO/PWM) handling |
+| `robot_vision.py` | Yellow-ball detection |
+| `robot_control.py` | Drive-command logic |
+| `tests/` | Unit tests for vision and control |
 
-1. Connect the hardware components to your microcontroller or development environment as per the pin definitions provided in the code.
+## 🔭 Not Implemented Yet
 
-2. Run the ball collecting robot code:
-  python ball_collecting_robot.py
- 
-3. The robot will start its autonomous operation, including ball detection, localization, navigation, and ball collection.
-The specific behaviors and functionality will depend on the implementation details of your code.
+- Gripper to actually pick the ball up
+- Obstacle avoidance with an ultrasonic sensor
 
-## Contributing
+## 📝 License
 
-Contributions to the Ball Collecting Robot project are welcome! If you would like to contribute, please follow these guidelines:
-
-1. Fork the repository and create a new branch.
-2. Make your changes and test them thoroughly.
-3. Submit a pull request describing your changes, the rationale behind them, and any relevant information.
-
-## License
-
-Feel free to modify and customize the sections and content of the README as per your project's
-specific requirements and implementation details.
+See [LICENSE](LICENSE).
